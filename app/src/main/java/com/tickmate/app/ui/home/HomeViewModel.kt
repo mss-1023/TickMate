@@ -29,6 +29,9 @@ class HomeViewModel(
     private val currentYearMonth: String
         get() = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
 
+    // 记录是否已发送过预算提醒（本次 ViewModel 生命周期内）
+    private var budgetAlertSent = false
+
     init {
         handleIntent(HomeIntent.LoadData)
     }
@@ -40,29 +43,36 @@ class HomeViewModel(
     }
 
     private fun loadData() {
-        // 监听当月总支出
+        // 用 combine 同时监听月支出和预算，任何一个变化都重新计算
         viewModelScope.launch {
-            recordRepository.getMonthTotal(currentYearMonth).collect { total ->
-                _state.update { it.copy(monthTotal = total, isLoading = false) }
-                checkBudget(total)
-            }
-        }
+            combine(
+                recordRepository.getMonthTotal(currentYearMonth),
+                budgetRepository.getBudget(currentYearMonth)
+            ) { total, budget ->
+                val percent = if (budget != null && budget.monthlyBudget > 0) {
+                    (total / budget.monthlyBudget * 100).toInt()
+                } else 0
+                val showWarning = budget != null &&
+                    budget.monthlyBudget > 0 &&
+                    percent >= budget.thresholdPercent
 
-        // 监听预算设置
-        viewModelScope.launch {
-            budgetRepository.getBudget(currentYearMonth).collect { budget ->
-                _state.update { state ->
-                    val percent = if (budget != null && budget.monthlyBudget > 0) {
-                        (state.monthTotal / budget.monthlyBudget * 100).toInt()
-                    } else 0
-                    state.copy(
-                        budget = budget,
-                        budgetPercent = percent,
-                        showBudgetWarning = budget != null &&
-                            budget.monthlyBudget > 0 &&
-                            percent >= (budget.thresholdPercent)
-                    )
+                // 发送预算提醒通知（每次 ViewModel 生命周期内只发一次）
+                if (showWarning && !budgetAlertSent) {
+                    budgetAlertSent = true
+                    _effect.send(HomeEffect.BudgetAlert(percent))
+                    notificationService.sendBudgetAlert(total, budget!!.monthlyBudget, percent)
                 }
+
+                HomeState(
+                    isLoading = false,
+                    monthTotal = total,
+                    budget = budget,
+                    budgetPercent = percent,
+                    showBudgetWarning = showWarning,
+                    recentRecords = _state.value.recentRecords
+                )
+            }.collect { newState ->
+                _state.value = newState
             }
         }
 
@@ -70,19 +80,6 @@ class HomeViewModel(
         viewModelScope.launch {
             recordRepository.getRecentRecords(5).collect { records ->
                 _state.update { it.copy(recentRecords = records) }
-            }
-        }
-    }
-
-    private fun checkBudget(total: Double) {
-        viewModelScope.launch {
-            val budget = budgetRepository.getBudgetSync(currentYearMonth)
-            if (budget != null && budget.monthlyBudget > 0) {
-                val percent = (total / budget.monthlyBudget * 100).toInt()
-                if (percent >= budget.thresholdPercent) {
-                    _effect.send(HomeEffect.BudgetAlert(percent))
-                    notificationService.sendBudgetAlert(total, budget.monthlyBudget, percent)
-                }
             }
         }
     }
