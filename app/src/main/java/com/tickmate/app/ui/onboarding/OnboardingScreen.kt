@@ -50,7 +50,7 @@ val onboardingPages = listOf(
 fun OnboardingScreen(
     onFinish: () -> Unit
 ) {
-    var currentPage by remember { mutableStateOf(0) }
+    var currentPage by remember { mutableIntStateOf(0) }
 
     Box(
         modifier = Modifier

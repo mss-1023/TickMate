@@ -50,7 +50,7 @@ fun HomeScreen(
     // 快速记账状态
     var showQuickAdd by remember { mutableStateOf(false) }
     var quickAmount by remember { mutableStateOf("") }
-    var quickCategoryId by remember { mutableStateOf(0L) }
+    var quickCategoryId by remember { mutableLongStateOf(0L) }
     var quickMerchant by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {

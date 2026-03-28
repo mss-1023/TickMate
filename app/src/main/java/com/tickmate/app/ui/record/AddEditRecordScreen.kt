@@ -32,7 +32,7 @@ fun AddEditRecordScreen(
     var merchant by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
     var date by remember { mutableStateOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))) }
-    var selectedCategoryId by remember { mutableStateOf(0L) }
+    var selectedCategoryId by remember { mutableLongStateOf(0L) }
     var note by remember { mutableStateOf("") }
     var isEdit by remember { mutableStateOf(false) }
 
