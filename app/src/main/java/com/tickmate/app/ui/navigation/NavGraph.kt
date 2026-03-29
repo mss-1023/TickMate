@@ -42,14 +42,21 @@ object Routes {
     fun recordDetail(recordId: Long) = "record_detail/$recordId"
 }
 
-// 全局过渡动画：淡入淡出，消除黑闪
-private const val ANIM_DURATION = 200
+// 子页面过渡动画（详情、录入、搜索等）
+private const val ANIM_DURATION = 150
 
-private fun enterAnim(): EnterTransition =
+private fun subEnter(): EnterTransition =
     fadeIn(animationSpec = tween(ANIM_DURATION))
 
-private fun exitAnim(): ExitTransition =
+private fun subExit(): ExitTransition =
     fadeOut(animationSpec = tween(ANIM_DURATION))
+
+// Tab 页面：无动画，瞬切
+private fun noEnter(): EnterTransition = EnterTransition.None
+private fun noExit(): ExitTransition = ExitTransition.None
+
+// 4个 Tab 路由
+private val tabRoutes = setOf(Routes.HOME, Routes.RECORD_LIST, Routes.STATS, Routes.SETTINGS)
 
 @Composable
 fun NavGraph(
@@ -61,10 +68,17 @@ fun NavGraph(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier.background(DarkBackground),
-        enterTransition = { enterAnim() },
-        exitTransition = { exitAnim() },
-        popEnterTransition = { enterAnim() },
-        popExitTransition = { exitAnim() }
+        // Tab 之间切换无动画，子页面淡入淡出
+        enterTransition = {
+            if (initialState.destination.route in tabRoutes && targetState.destination.route in tabRoutes)
+                noEnter() else subEnter()
+        },
+        exitTransition = {
+            if (initialState.destination.route in tabRoutes && targetState.destination.route in tabRoutes)
+                noExit() else subExit()
+        },
+        popEnterTransition = { subEnter() },
+        popExitTransition = { subExit() }
     ) {
         // 引导页
         composable(Routes.ONBOARDING) {
@@ -77,8 +91,14 @@ fun NavGraph(
             )
         }
 
-        // 首页
-        composable(Routes.HOME) {
+        // 首页（Tab - 无动画）
+        composable(
+            Routes.HOME,
+            enterTransition = { noEnter() },
+            exitTransition = { noExit() },
+            popEnterTransition = { noEnter() },
+            popExitTransition = { noExit() }
+        ) {
             HomeScreen(
                 onNavigateToAddRecord = { navController.navigate(Routes.ADD_RECORD) },
                 onNavigateToCamera = { navController.navigate(Routes.CAMERA) },
@@ -87,8 +107,14 @@ fun NavGraph(
             )
         }
 
-        // 记录列表
-        composable(Routes.RECORD_LIST) {
+        // 记录列表（Tab - 无动画）
+        composable(
+            Routes.RECORD_LIST,
+            enterTransition = { noEnter() },
+            exitTransition = { noExit() },
+            popEnterTransition = { noEnter() },
+            popExitTransition = { noExit() }
+        ) {
             RecordListScreen(
                 onNavigateToAddRecord = { navController.navigate(Routes.ADD_RECORD) },
                 onNavigateToCamera = { navController.navigate(Routes.CAMERA) },
@@ -137,8 +163,14 @@ fun NavGraph(
             )
         }
 
-        // 统计
-        composable(Routes.STATS) {
+        // 统计（Tab - 无动画）
+        composable(
+            Routes.STATS,
+            enterTransition = { noEnter() },
+            exitTransition = { noExit() },
+            popEnterTransition = { noEnter() },
+            popExitTransition = { noExit() }
+        ) {
             StatsScreen()
         }
 
@@ -149,8 +181,14 @@ fun NavGraph(
             )
         }
 
-        // 设置
-        composable(Routes.SETTINGS) {
+        // 设置（Tab - 无动画）
+        composable(
+            Routes.SETTINGS,
+            enterTransition = { noEnter() },
+            exitTransition = { noExit() },
+            popEnterTransition = { noEnter() },
+            popExitTransition = { noExit() }
+        ) {
             SettingsScreen(
                 onNavigateToAbout = { navController.navigate(Routes.ABOUT) }
             )

@@ -20,14 +20,9 @@ android {
             useSupportLibrary = true
         }
 
-        // 百度 OCR API Key（从 local.properties 或默认值）
-        val localProps = rootProject.file("local.properties")
-        val props = java.util.Properties()
-        if (localProps.exists()) props.load(localProps.inputStream())
-        buildConfigField("String", "BAIDU_OCR_API_KEY",
-            "\"${props.getProperty("baidu.ocr.apiKey", "zPZLEImUedgajxaiF1dlDaAc")}\"")
-        buildConfigField("String", "BAIDU_OCR_SECRET_KEY",
-            "\"${props.getProperty("baidu.ocr.secretKey", "YBW3Qqgfdp79EpIsgAxerrO34b9r38nY")}\"")
+        // 百度 OCR API Key
+        buildConfigField("String", "BAIDU_OCR_API_KEY", "\"zPZLEImUedgajxaiF1dlDaAc\"")
+        buildConfigField("String", "BAIDU_OCR_SECRET_KEY", "\"YBW3Qqgfdp79EpIsgAxerrO34b9r38nY\"")
     }
 
     buildTypes {
