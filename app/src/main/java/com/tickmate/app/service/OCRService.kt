@@ -211,30 +211,32 @@ class OCRService(private val context: Context) {
         val secondaryKeywords = listOf("金额", "小计", "支付金额", "消费金额", "交易金额", "付款金额", "Total", "TOTAL", "Amount")
 
         // 从后往前搜索（合计通常在底部），先找第一优先级
-        for (line in lines.reversed()) {
+        for (idx in lines.indices.reversed()) {
+            val line = lines[idx]
             if (primaryKeywords.any { line.contains(it) }) {
                 val numbers = extractNumbers(line)
                 if (numbers.isNotEmpty()) return numbers.max()
-
-                // 关键词行没有数字，看下一行（有些发票金额在关键词的下一行）
-                val idx = lines.indexOf(line)
+                // 看前后行
                 if (idx + 1 < lines.size) {
-                    val nextNumbers = extractNumbers(lines[idx + 1])
-                    if (nextNumbers.isNotEmpty()) return nextNumbers.max()
+                    val next = extractNumbers(lines[idx + 1])
+                    if (next.isNotEmpty()) return next.max()
+                }
+                if (idx - 1 >= 0) {
+                    val prev = extractNumbers(lines[idx - 1])
+                    if (prev.isNotEmpty()) return prev.max()
                 }
             }
         }
 
         // 再找第二优先级
-        for (line in lines.reversed()) {
+        for (idx in lines.indices.reversed()) {
+            val line = lines[idx]
             if (secondaryKeywords.any { line.contains(it, ignoreCase = true) }) {
                 val numbers = extractNumbers(line)
                 if (numbers.isNotEmpty()) return numbers.max()
-
-                val idx = lines.indexOf(line)
                 if (idx + 1 < lines.size) {
-                    val nextNumbers = extractNumbers(lines[idx + 1])
-                    if (nextNumbers.isNotEmpty()) return nextNumbers.max()
+                    val next = extractNumbers(lines[idx + 1])
+                    if (next.isNotEmpty()) return next.max()
                 }
             }
         }

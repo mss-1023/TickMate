@@ -4,10 +4,14 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.navigation.compose.rememberNavController
 import com.tickmate.app.ui.navigation.BottomNavBar
 import com.tickmate.app.ui.navigation.NavGraph
@@ -24,7 +28,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val onboardingDone = prefs.getBoolean(KEY_ONBOARDING_DONE, false)
 
@@ -34,19 +38,22 @@ class MainActivity : ComponentActivity() {
                 val startDest = if (onboardingDone) Routes.HOME else Routes.ONBOARDING
 
                 Scaffold(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(DarkBackground),
                     containerColor = DarkBackground,
                     bottomBar = { BottomNavBar(navController) }
                 ) { innerPadding ->
+                    // 只传 bottom padding（底部导航栏高度），不传 top（避免双重顶部间距）
                     NavGraph(
                         navController = navController,
-                        modifier = Modifier.padding(innerPadding),
+                        modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding()),
                         startDestination = startDest
                     )
                 }
 
-                // 监听导航到HOME时标记引导完成
                 if (!onboardingDone) {
-                    androidx.compose.runtime.LaunchedEffect(navController) {
+                    LaunchedEffect(navController) {
                         navController.currentBackStackEntryFlow.collect { entry ->
                             if (entry.destination.route == Routes.HOME) {
                                 prefs.edit().putBoolean(KEY_ONBOARDING_DONE, true).apply()

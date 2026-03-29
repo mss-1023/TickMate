@@ -33,9 +33,9 @@ class OnlineOCRService(private val context: Context) {
         // 通用文字识别（标准版）
         private const val OCR_GENERAL_URL = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
 
-        // 默认内置 API Key
-        private const val DEFAULT_API_KEY = "zPZLEImUedgajxaiF1dlDaAc"
-        private const val DEFAULT_SECRET_KEY = "YBW3Qqgfdp79EpIsgAxerrO34b9r38nY"
+        // API Key 从 BuildConfig 读取（构建时注入，不硬编码在源码）
+        private val DEFAULT_API_KEY = com.tickmate.app.BuildConfig.BAIDU_OCR_API_KEY
+        private val DEFAULT_SECRET_KEY = com.tickmate.app.BuildConfig.BAIDU_OCR_SECRET_KEY
 
         // 图片最大尺寸（百度 API 限制 4MB base64，压缩到 1MB 以内）
         private const val MAX_IMAGE_SIZE = 1024 * 1024
@@ -97,15 +97,13 @@ class OnlineOCRService(private val context: Context) {
         }
     }
 
-    // 压缩图片到合理大小
+    // 压缩图片到合理大小（资源安全管理）
     private fun compressImage(imageUri: Uri): String {
-        val inputStream = context.contentResolver.openInputStream(imageUri)
-            ?: throw Exception("无法读取图片")
-
         // 先读取尺寸
         val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeStream(inputStream, null, options)
-        inputStream.close()
+        context.contentResolver.openInputStream(imageUri)?.use { stream ->
+            BitmapFactory.decodeStream(stream, null, options)
+        } ?: throw Exception("无法读取图片")
 
         // 计算缩放比例
         var sampleSize = 1
@@ -116,24 +114,24 @@ class OnlineOCRService(private val context: Context) {
 
         // 解码缩放后的图片
         val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
-        val stream2 = context.contentResolver.openInputStream(imageUri)
-            ?: throw Exception("无法读取图片")
-        val bitmap = BitmapFactory.decodeStream(stream2, null, decodeOptions)
-            ?: throw Exception("图片解码失败")
-        stream2.close()
+        val bitmap = context.contentResolver.openInputStream(imageUri)?.use { stream ->
+            BitmapFactory.decodeStream(stream, null, decodeOptions)
+        } ?: throw Exception("图片解码失败")
 
         // 压缩为 JPEG
-        val baos = ByteArrayOutputStream()
-        var quality = 90
-        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, baos)
-        while (baos.size() > MAX_IMAGE_SIZE && quality > 30) {
-            baos.reset()
-            quality -= 10
+        try {
+            val baos = ByteArrayOutputStream()
+            var quality = 90
             bitmap.compress(Bitmap.CompressFormat.JPEG, quality, baos)
+            while (baos.size() > MAX_IMAGE_SIZE && quality > 30) {
+                baos.reset()
+                quality -= 10
+                bitmap.compress(Bitmap.CompressFormat.JPEG, quality, baos)
+            }
+            return Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP)
+        } finally {
+            bitmap.recycle()
         }
-        bitmap.recycle()
-
-        return Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP)
     }
 
     // 识别票据

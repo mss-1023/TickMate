@@ -116,8 +116,9 @@ class SettingsViewModel(
     // 导出全部记录为 CSV
     fun handleExport(context: Context) {
         viewModelScope.launch {
-            val exportService = ExportService(context)
-            recordRepository.getAllRecords().first().let { records ->
+            try {
+                val exportService = ExportService(context.applicationContext)
+                val records = recordRepository.getAllRecords().first()
                 val categories = _state.value.categories
                 val uri = exportService.exportToCSV(records, categories)
                 if (uri != null) {
@@ -126,6 +127,8 @@ class SettingsViewModel(
                 } else {
                     _effect.send(SettingsEffect.ShowToast("暂无记录可导出"))
                 }
+            } catch (e: Exception) {
+                _effect.send(SettingsEffect.ShowToast("导出失败：${e.message}"))
             }
         }
     }

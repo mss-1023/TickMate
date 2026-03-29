@@ -154,7 +154,7 @@ fun RecordListScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(vertical = 8.dp)
+                    contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp)
                 ) {
                     items(state.records, key = { it.id }) { record ->
                         val categoryName = state.categories

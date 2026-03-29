@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
@@ -44,7 +46,6 @@ fun BottomNavBar(navController: NavController) {
     val showBottomBar = currentRoute in bottomNavItems.map { it.route }
     if (!showBottomBar) return
 
-    // 自定义底部导航栏，不使用 Material3 默认的椭圆指示器
     Surface(
         color = CardBackground,
         tonalElevation = 0.dp
@@ -52,6 +53,15 @@ fun BottomNavBar(navController: NavController) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .drawBehind {
+                    // 顶部分割线
+                    drawLine(
+                        color = DividerColor,
+                        start = Offset(0f, 0f),
+                        end = Offset(size.width, 0f),
+                        strokeWidth = 0.5f
+                    )
+                }
                 .height(64.dp)
                 .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceAround,

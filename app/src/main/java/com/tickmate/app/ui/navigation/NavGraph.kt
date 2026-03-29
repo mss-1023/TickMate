@@ -1,5 +1,8 @@
 package com.tickmate.app.ui.navigation
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -18,6 +21,7 @@ import com.tickmate.app.ui.settings.AboutScreen
 import com.tickmate.app.ui.settings.SettingsScreen
 import com.tickmate.app.ui.stats.MonthlyReportScreen
 import com.tickmate.app.ui.stats.StatsScreen
+import com.tickmate.app.ui.theme.DarkBackground
 
 // 路由定义
 object Routes {
@@ -38,6 +42,15 @@ object Routes {
     fun recordDetail(recordId: Long) = "record_detail/$recordId"
 }
 
+// 全局过渡动画：淡入淡出，消除黑闪
+private const val ANIM_DURATION = 200
+
+private fun enterAnim(): EnterTransition =
+    fadeIn(animationSpec = tween(ANIM_DURATION))
+
+private fun exitAnim(): ExitTransition =
+    fadeOut(animationSpec = tween(ANIM_DURATION))
+
 @Composable
 fun NavGraph(
     navController: NavHostController,
@@ -47,7 +60,11 @@ fun NavGraph(
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = modifier
+        modifier = modifier.background(DarkBackground),
+        enterTransition = { enterAnim() },
+        exitTransition = { exitAnim() },
+        popEnterTransition = { enterAnim() },
+        popExitTransition = { exitAnim() }
     ) {
         // 引导页
         composable(Routes.ONBOARDING) {

@@ -97,7 +97,7 @@ fun HomeScreen(
                     .padding(padding)
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(vertical = 16.dp)
+                contentPadding = PaddingValues(top = 16.dp, bottom = 88.dp)
             ) {
                 // 标题栏 + 搜索按钮
                 item {

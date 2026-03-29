@@ -1,0 +1,27 @@
+# Git ignores
+.gradle/
+build/
+app/build/
+local.properties
+*.iml
+.idea/
+.DS_Store
+*.apk
+*.aab
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Gradle caches
+caches/
+daemon/
+native/
+wrapper/dists/
+
+# Temp/build artifacts
+.tmp/
+android/FakeDependency.jar
+jdks/
+kotlin-profile/
+tmux-*.log
+*.log
